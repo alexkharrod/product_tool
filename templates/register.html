@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}<title>Register</title>{% endblock %}
+
+{% block content %}
+    <h1>Register</h1>
+        <body class="text-center">
+
+<main class="form-signin">
+
+    <div class="form-floating">
+        <form action="" method="post" novalidate>
+            <img class="mb-4" src="{{ url_for('static', filename='images/register.svg')}}" alt="" width="72" height="57">
+            <h1 class="h3 mb-3 fw-normal">Register Here</h1>
+
+            <div class="flex">
+
+             {{ form.hidden_tag()}}
+              <p>
+                {{form.email.label}} <br> {{form.email(size=32)}}<br>
+              </p>
+              <p>
+                {{form.fname.label}} <br> {{form.fname(size=32)}}<br>
+              </p>
+               <p>
+                {{form.lname.label}} <br> {{form.lname(size=32)}}<br>
+              </p>
+                <p>
+                {{form.role.label}} <br> {{form.role}}<br>
+              </p>
+               <p>
+                {{form.password.label}} <br> {{form.password(size=32)}}<br>
+              </p>
+              <p>{{form.submit}}</p>
+            </div>
+
+
+    </form>
+  </div>
+
+</main>
+
+
+
+
+
+</body>
+
+
+
+{% endblock %}ml>
