@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from flask_bootstrap import Bootstrap5
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
-from forms import  CreateUser, CreateProduct
+from forms import  CreateUser, CreateProduct, LoginUser
 from functools import wraps
 from datetime import date
 
@@ -38,8 +38,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-
-
 # Create the Database Tables
 class Products(db.Model):
     __tablename__ = "products"
@@ -68,7 +66,7 @@ class Users(db.Model, UserMixin):
 # login manager user loader
 @login_manager.user_loader
 def load_user(user_id):
-    return Users.get(user_id)
+    return Users.query.get(user_id)
 
 @app.route("/")
 def home():
@@ -79,7 +77,7 @@ def register():
     form = CreateUser()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
-        existing_user = Users.query.filter_by(email=form.email.data)
+        existing_user = Users.query.filter_by(email=form.email.data).first()
         if form.email.data == existing_user:
             flash("Email already registered, login here")
             return redirect(url_for("login"))
@@ -97,16 +95,30 @@ def register():
             return redirect(url_for('home'))
     return render_template("register.html", form=form)
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    form = CreateUser()
+    form = LoginUser()
+    if form.validate_on_submit():
+        user = Users.query.filter_by(email=form.email.data).first()
+        if user:
+            if check_password_hash(user.password, form.password.data):
+                flash(f"{user.fname} successfully logged in")
+                login_user(user)
+                return redirect(url_for("home"))
+            else:
+                flash("Password didn't match")
+                return redirect(url_for("home"))
+        else:
+            flash("email not registered.  Try again or ask admin to register you")
+            return redirect(url_for("home"))
     return render_template("login.html", form=form)
 
 @app.route("/logout", methods=["GET"])
 def logout():
+    flash(f"Logging {current_user.fname} out.")
     logout_user()
     return redirect(url_for("login"))
-
 
 
 if __name__ == "__main__":

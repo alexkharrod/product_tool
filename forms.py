@@ -19,3 +19,9 @@ class CreateUser(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
     role = SelectField('Role', choices=[('User', 'User'),('Administrator', 'Admin') ])
     submit = SubmitField("Submit")
+
+# WTForm for creating a logging in a user
+class LoginUser(FlaskForm):
+    email = StringField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
