@@ -18,13 +18,13 @@ class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quote_number = db.Column(db.Integer, unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    rep_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", name="fk_quote_user"), nullable=False)
     customer_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(20), default=QuoteStatus.OPEN.value)
 
     # Product Reference
     product_sku = db.Column(
-        db.String(50), db.ForeignKey("products.sku"), nullable=False
+        db.String(50), db.ForeignKey("products.sku", name="fk_quote_product"), nullable=False
     )
 
     # Quantity Tiers
@@ -55,7 +55,7 @@ class Quote(db.Model):
 
     # Relationships
     product = db.relationship("Product", back_populates="quotes")
-    rep = db.relationship("User", backref="quotes")
+    user = db.relationship("User", backref="quotes")
 
     __table_args__ = (
         CheckConstraint(

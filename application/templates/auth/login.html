@@ -11,14 +11,14 @@
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors)) }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
                             {% for error in form.email.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors)) }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
                             {% for error in form.password.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}

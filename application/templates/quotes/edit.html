@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Edit Quote{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Title character counter
+    const titleField = document.getElementById('{{ form.title.id }}');
+    const titleCounter = document.getElementById('title-counter');
+    const maxTitleLength = 100;
+    
+    // Content character counter
+    const contentField = document.getElementById('{{ form.content.id }}');
+    const contentCounter = document.getElementById('content-counter');
+    const maxContentLength = 2000;
+    
+    function updateCounter(field, counter, maxLength) {
+        const remaining = maxLength - field.value.length;
+        counter.textContent = remaining;
+        counter.classList.toggle('text-danger', remaining < (maxLength * 0.1));
+    }
+
+    titleField.addEventListener('input', () => {
+        updateCounter(titleField, titleCounter, maxTitleLength);
+    });
+    
+    contentField.addEventListener('input', () => {
+        updateCounter(contentField, contentCounter, maxContentLength);
+    });
+
+    // Initialize counters
+    titleField.dispatchEvent(new Event('input'));
+    contentField.dispatchEvent(new Event('input'));
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">Edit Quote</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {{ form.title(class="form-control" + (' is-invalid' if form.title.errors else ''), maxlength=100) }}
+                            <small class="form-text text-muted float-end">
+                                <span id="title-counter">100</span> characters remaining
+                            </small>
+                            {% for error in form.title.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.content.label(class="form-label") }}
+                            {{ form.content(class="form-control" + (' is-invalid' if form.content.errors else ''), 
+                                        rows=5,
+                                        maxlength=2000,
+                                        placeholder="Enter detailed quote information...") }}
+                            <small class="form-text text-muted float-end">
+                                <span id="content-counter">2000</span> characters remaining
+                            </small>
+                            <small class="form-text text-muted">
+                                Supports basic Markdown formatting (*italic*, **bold**, - lists)
+                            </small>
+                            {% for error in form.content.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Last updated: {{ quote.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Update Quote
+                            </button>
+                            <a href="{{ url_for('quote.quote_list') }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

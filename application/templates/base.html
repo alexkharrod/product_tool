@@ -19,14 +19,18 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
           <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('quote.quote_list') }}">
+              <i class="bi bi-file-text me-1"></i>Quotes
+            </a>
+          </li>
+          <li class="nav-item">
             <form action="{{ url_for('auth.logout') }}" method="POST">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="nav-link btn btn-link">Logout</button>
+              <button type="submit" class="nav-link btn btn-link">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+              </button>
             </form>
           </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('quote.quote_list') }}">Quotes</a>
-                    </li>
                     {% if current_user.is_authenticated and current_user.is_admin() %}
                     <li class="nav-item">
                         <a class="nav-link text-warning" href="{{ url_for('admin.dashboard') }}">

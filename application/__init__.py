@@ -56,6 +56,7 @@ def create_app(config_class=DevelopmentConfig):
     from application.routes.product import bp as product_bp
     from application.routes.quote import bp as quote_bp
     from application.routes.admin.dashboard import admin_bp
+    # Quote routes registered
 
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
