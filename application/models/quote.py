@@ -1,10 +1,38 @@
 from datetime import datetime
 from enum import Enum
-
-from sqlalchemy import CheckConstraint
-from sqlalchemy.orm import validates
-
+from sqlalchemy import CheckConstraint, ForeignKey
+from sqlalchemy.orm import validates, relationship
 from application import db
+
+class QuoteTier(db.Model):
+    __tablename__ = "quote_tiers"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    quote_id = db.Column(db.Integer, ForeignKey('quotes.id'), nullable=False)
+    tier_number = db.Column(db.Integer, nullable=False)  # 1-5
+    quantity = db.Column(db.Integer, nullable=False)
+    air_freight = db.Column(db.Float)
+    ocean_freight = db.Column(db.Float)
+    markup = db.Column(db.Float)
+    quote_price = db.Column(db.Float, nullable=False)
+    
+    __table_args__ = (
+        CheckConstraint("tier_number BETWEEN 1 AND 5", name="check_tier_number_range"),
+        CheckConstraint("quantity > 0", name="check_positive_quantity"),
+        CheckConstraint("quote_price > 0", name="check_positive_price"),
+    )
+    
+    @validates('quantity')
+    def validate_quantity(self, key, value):
+        if value <= 0:
+            raise ValueError("Quantity must be positive")
+        return value
+        
+    @validates('quote_price')
+    def validate_price(self, key, value):
+        if value <= 0:
+            raise ValueError("Price must be positive")
+        return value
 
 
 class QuoteStatus(Enum):
@@ -18,35 +46,21 @@ class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quote_number = db.Column(db.Integer, unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id", name="fk_quote_user"), nullable=False)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", name="fk_quote_user"), nullable=False
+    )
     customer_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(20), default=QuoteStatus.OPEN.value)
 
     # Product Reference
     product_sku = db.Column(
-        db.String(50), db.ForeignKey("products.sku", name="fk_quote_product"), nullable=False
+        db.String(50),
+        db.ForeignKey("products.sku", name="fk_quote_product"),
+        nullable=False,
     )
 
-    # Quantity Tiers
-    quantity1 = db.Column(db.Integer, nullable=False)
-    quantity2 = db.Column(db.Integer)
-    quantity3 = db.Column(db.Integer)
-
-    # Pricing
-    air_freight1 = db.Column(db.Float)
-    ocean_freight1 = db.Column(db.Float)
-    markup1 = db.Column(db.Float)
-    quote_price1 = db.Column(db.Float, nullable=False)
-
-    air_freight2 = db.Column(db.Float)
-    ocean_freight2 = db.Column(db.Float)
-    markup2 = db.Column(db.Float)
-    quote_price2 = db.Column(db.Float)
-
-    air_freight3 = db.Column(db.Float)
-    ocean_freight3 = db.Column(db.Float)
-    markup3 = db.Column(db.Float)
-    quote_price3 = db.Column(db.Float)
+    # Pricing Tiers (1-5)
+    tiers = relationship("QuoteTier", backref="quote", cascade="all, delete-orphan")
 
     # PDF Information
     pdf_data = db.Column(db.LargeBinary)
@@ -59,30 +73,28 @@ class Quote(db.Model):
 
     __table_args__ = (
         CheckConstraint(
-            "quantity2 > quantity1 OR quantity2 IS NULL",
-            name="check_quantity_order_1_2",
-        ),
-        CheckConstraint(
-            "quantity3 > quantity2 OR quantity3 IS NULL",
-            name="check_quantity_order_2_3",
+            "(SELECT COUNT(*) FROM quote_tiers WHERE quote_id = id) BETWEEN 1 AND 5",
+            name="check_tier_count"
         ),
     )
 
-    @validates("quantity1", "quantity2", "quantity3")
-    def validate_quantities(self, key, value):
-        if key == "quantity1" and value < 1:
-            raise ValueError("Quantity1 must be at least 1")
-        if key in ["quantity2", "quantity3"] and value is not None:
-            prev = getattr(self, f"quantity{int(key[-1])-1}")
-            if value <= prev:
-                raise ValueError(f"{key} must be greater than previous quantity")
-        return value
-
-    @validates("quote_price1", "quote_price2", "quote_price3")
-    def validate_prices(self, key, value):
-        if value is not None and value <= 0:
-            raise ValueError("Prices must be positive")
-        return value
+    @validates('tiers')
+    def validate_tiers(self, key, tiers):
+        if not tiers:
+            raise ValueError("At least one pricing tier required")
+            
+        # Ensure tier numbers are sequential and quantities increase
+        prev_quantity = 0
+        for tier in sorted(tiers, key=lambda t: t.tier_number):
+            if tier.tier_number < 1 or tier.tier_number > 5:
+                raise ValueError("Tier numbers must be between 1-5")
+                
+            if tier.quantity <= prev_quantity:
+                raise ValueError("Quantities must be in ascending order")
+                
+            prev_quantity = tier.quantity
+            
+        return tiers
 
     @classmethod
     def generate_quote_number(cls):
