@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Admin Dashboard</h1>
+    
+    <div class="row mt-4">
+        <!-- Open Quotes Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Open Quotes</h5>
+                    <p class="card-text display-4">{{ stats.open_quotes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Products Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Products</h5>
+                    <p class="card-text display-4">{{ stats.pending_products }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Quotes Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Recent Quotes</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for quote in stats.recent_quotes %}
+                <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Quote #{{ quote.quote_number }}</h6>
+                        <small>{{ quote.created_at|datetime }}</small>
+                    </div>
+                    <p class="mb-1">Customer: {{ quote.customer_name }}</p>
+                    <small>Status: {{ quote.status|title }}</small>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- User Activity Section -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Recent User Activity</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for user in stats.user_activity %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ user.email }}</h6>
+                        <small>Last login: {{ user.last_login|datetime }}</small>
+                    </div>
+                    <p class="mb-1">Role: {{ 'Admin' if user.is_admin else 'User' }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
