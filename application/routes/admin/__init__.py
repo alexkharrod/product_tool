@@ -1,0 +1,1 @@
+# Initialize admin routes package

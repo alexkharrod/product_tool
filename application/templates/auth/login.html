@@ -7,7 +7,7 @@
             <div class="card">
                 <div class="card-header">Login</div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('auth_bp.login') }}">
+                    <form method="POST" action="{{ url_for('auth.login') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             {{ form.email.label(class="form-label") }}

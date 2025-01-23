@@ -1,4 +1,5 @@
 from application import db, login
+from sqlalchemy import Column, Integer, String, Boolean
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Enum
@@ -10,19 +11,28 @@ class Role(enum.Enum):
     MARKETING = "Marketing"
     USER = "User"
 
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+class User(db.Model, UserMixin):
+    __tablename__ = 'user'
     
-    email = db.Column(db.String(120), primary_key=True, unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(Enum(Role), nullable=False, default=Role.USER)
     last_login = db.Column(db.DateTime)
     failed_attempts = db.Column(db.Integer, default=0)
     locked_until = db.Column(db.DateTime)
     remember_token = db.Column(db.String(100))
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    def is_admin(self):
+        return self.role == Role.ADMIN
     
     def __repr__(self):
         return f'<User {self.email}>'
+    
+    @classmethod
+    def get_by_email(cls, email):
+        return cls.query.filter_by(email=email).first()
     
     def set_password(self, password):
         if not re.match(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{10,128}$', password):
@@ -38,5 +48,5 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 @login.user_loader
-def load_user(email):
-    return User.query.get(email)
+def load_user(id):
+    return User.query.get(int(id))

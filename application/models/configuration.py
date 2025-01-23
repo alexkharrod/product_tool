@@ -2,6 +2,7 @@ from application import db
 from sqlalchemy.orm import validates
 
 class Configuration(db.Model):
+    __table_args__ = {'extend_existing': True}  # Add this line to ensure table metadata is refreshed
     __tablename__ = 'configurations'
     
     id = db.Column(db.Integer, primary_key=True)

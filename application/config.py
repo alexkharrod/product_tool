@@ -27,6 +27,7 @@ class Config:
     PDF_MAX_IMAGE_DIMENSIONS = (1200, 800)  # width, height in pixels
     PDF_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"]
     PDF_DEFAULT_DPI = 300
+    DIMENSIONAL_DIVISOR = 5000  # Standard divisor for dimensional weight calculation
 
     # Security settings
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
@@ -42,9 +43,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{Path(__file__).parent}/instance/dev.db"
+    SQLALCHEMY_DATABASE_URI = (
+        f"sqlite:///{(Path(__file__).parent / 'instance/dev.db').absolute()}"
+    )
     SERVER_NAME = "127.0.0.1:5003"  # Must match explicit host/port
     PREFERRED_URL_SCHEME = "http"
+    FLASK_RUN_PORT = 5003  # Set default port for flask run command
 
 
 class ProductionConfig(Config):

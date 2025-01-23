@@ -4,7 +4,7 @@ from application import db
 from application.models import Quote, Product, User
 from flask import Blueprint
 
-admin_bp = Blueprint('admin_bp', __name__, url_prefix='/admin')
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.before_request
 @login_required

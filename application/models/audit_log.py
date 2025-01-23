@@ -22,7 +22,7 @@ class AuditLog(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    user_id = db.Column(db.String(120), db.ForeignKey('users.email'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     action_type = db.Column(Enum(ActionType), nullable=False)
     entity_type = db.Column(Enum(EntityType), nullable=False)
     entity_id = db.Column(db.String(50), nullable=False)
