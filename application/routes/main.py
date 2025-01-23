@@ -1,13 +1,8 @@
 from flask import Blueprint, render_template
-from flask_login import login_required
 
-bp = Blueprint('main', __name__)
+main_bp = Blueprint('main', __name__)
 
-@bp.route('/')
+@main_bp.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
-
-@bp.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('admin/dashboard.html')
+    """Main landing page showing system status"""
+    return render_template('index.html')  # Render homepage template

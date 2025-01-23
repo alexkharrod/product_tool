@@ -19,6 +19,59 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
+from application.models import Role
+
+class CreateUserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', 
+                                   validators=[DataRequired(), EqualTo('password')])
+    role = SelectField('Role', 
+                     choices=[(role.name, role.value) for role in Role],
+                     validators=[DataRequired()])
+    submit = SubmitField('Create User')
+
+class EditUserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password (leave blank to keep existing)')
+    confirm_password = PasswordField('Confirm Password',
+                                   validators=[EqualTo('password')])
+    role = SelectField('Role',
+                     choices=[(role.name, role.value) for role in Role],
+                     validators=[DataRequired()])
+    submit = SubmitField('Update User')
+from flask_wtf import FlaskForm
+from wtforms import (
+    StringField, TextAreaField, DecimalField,
+    SubmitField, PasswordField, BooleanField,
+    SelectField, IntegerField, DateField, SelectMultipleField
+)
+from wtforms.validators import DataRequired, Length, NumberRange, Email, EqualTo
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+class UserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', 
+                                   validators=[DataRequired(), EqualTo('password')])
+    role = SelectField('Role', choices=[
+        ('user', 'Standard User'),
+        ('admin', 'Administrator')
+    ], default='user')
+    submit = SubmitField('Create User')
+
 class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[
         DataRequired(),

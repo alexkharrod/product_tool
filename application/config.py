@@ -8,7 +8,7 @@ load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key-123")
+    SECRET_KEY = os.environ["SECRET_KEY"]  # Required - set in .env
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get("DATABASE_URL")
         or f"sqlite:///{Path(__file__).parent}/instance/production.db"
@@ -34,9 +34,9 @@ class Config:
     REMEMBER_COOKIE_DURATION = 604800  # 1 week
 
     # Email configuration
-    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
+    MAIL_SERVER = os.environ["MAIL_SERVER"]
+    MAIL_PORT = int(os.environ["MAIL_PORT"])
+    MAIL_USE_TLS = os.environ["MAIL_USE_TLS"].lower() == "true"
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
 
@@ -46,9 +46,9 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = (
         f"sqlite:///{(Path(__file__).parent / 'instance/dev.db').absolute()}"
     )
-    SERVER_NAME = "127.0.0.1:5003"  # Must match explicit host/port
-    PREFERRED_URL_SCHEME = "http"
-    FLASK_RUN_PORT = 5003  # Set default port for flask run command
+    SERVER_NAME = "localhost:3001"  # Match curl request host
+    PREFERRED_URL_SCHEME = "http" 
+    FLASK_RUN_PORT = 3001  # Default port for flask run
 
 
 class ProductionConfig(Config):
