@@ -6,14 +6,20 @@ from sqlalchemy.orm import validates
 from application import db
 
 class Product(db.Model):
+    """Core product model with pricing tiers and validation"""
     __tablename__ = "products"
 
     # Configuration Relationship
     config_id = db.Column(db.Integer, db.ForeignKey('configurations.id'))
-    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-    # Primary Information
-    sku = db.Column(db.String(50), primary_key=True)
+    # Primary Key
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Unique Product Identifier
+    sku = db.Column(db.String(50), unique=True, nullable=False)
+    
+    # Product Information
     name = db.Column(db.String(100), nullable=False)
     vendor_name = db.Column(db.String(100), nullable=False)
     vendor_part_number = db.Column(db.String(15))
@@ -28,7 +34,7 @@ class Product(db.Model):
     height = db.Column(db.Float, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     quantity_per_ctn = db.Column(db.Integer, nullable=False)
-
+ 
     # Production Information
     moq = db.Column(db.Integer, nullable=False)
     package_type = db.Column(db.String(100))
@@ -49,7 +55,7 @@ class Product(db.Model):
     quotes = db.relationship(
         "Quote", back_populates="product", cascade="all, delete-orphan", lazy=True
     )
-    created_by = db.relationship("User", back_populates="products")
+    created_by = db.relationship("User", back_populates="products", foreign_keys=[created_by_id])
     tiers = db.relationship(
         "ProductTier", 
         backref="product", 
@@ -124,7 +130,7 @@ class Product(db.Model):
 class ProductTier(db.Model):
     __tablename__ = "product_tiers"
     id = db.Column(db.Integer, primary_key=True)
-    product_sku = db.Column(db.String(50), db.ForeignKey('products.sku'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     unit_cost = db.Column(db.Numeric(10,2), nullable=False)
     effective_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)

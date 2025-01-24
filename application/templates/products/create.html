@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Create New Product</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('product.create') }}" enctype="multipart/form-data">
+        {{ create_form.hidden_tag() }}
+        
+        <!-- Primary Information -->
+        <div class="card mb-4">
+          <div class="card-header">Product Identification</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                {{ create_form.sku.label(class="form-label") }}
+                {{ create_form.sku(class="form-control" + (' is-invalid' if create_form.sku.errors else '')) }}
+                {% for error in create_form.sku.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.name.label(class="form-label") }}
+                {{ create_form.name(class="form-control" + (' is-invalid' if create_form.name.errors else ''), maxlength="100") }}
+                {% for error in create_form.name.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.vendor_name.label(class="form-label") }}
+                {{ create_form.vendor_name(class="form-control" + (' is-invalid' if create_form.vendor_name.errors else '')) }}
+                {% for error in create_form.vendor_name.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.vendor_part_number.label(class="form-label") }}
+                {{ create_form.vendor_part_number(class="form-control" + (' is-invalid' if create_form.vendor_part_number.errors else '')) }}
+                {% for error in create_form.vendor_part_number.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ create_form.category.label(class="form-label") }}
+                {{ create_form.category(class="form-control" + (' is-invalid' if create_form.category.errors else '')) }}
+                {% for error in create_form.category.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ create_form.image_url.label(class="form-label") }}
+                {{ create_form.image_url(class="form-control" + (' is-invalid' if create_form.image_url.errors else '')) }}
+                {% for error in create_form.image_url.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimensional Information -->
+        <div class="card mb-4">
+          <div class="card-header">Master Carton</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                {{ create_form.length.label(class="form-label") }}
+                {{ create_form.length(class="form-control" + (' is-invalid' if create_form.length.errors else ''), step="0.01") }}
+                {% for error in create_form.length.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-3">
+                {{ create_form.width.label(class="form-label") }}
+                {{ create_form.width(class="form-control" + (' is-invalid' if create_form.width.errors else ''), step="0.01") }}
+                {% for error in create_form.width.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-3">
+                {{ create_form.height.label(class="form-label") }}
+                {{ create_form.height(class="form-control" + (' is-invalid' if create_form.height.errors else ''), step="0.01") }}
+                {% for error in create_form.height.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-3">
+                {{ create_form.weight.label(class="form-label") }}
+                {{ create_form.weight(class="form-control" + (' is-invalid' if create_form.weight.errors else ''), step="0.01") }}
+                {% for error in create_form.weight.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.quantity_per_ctn.label(class="form-label") }}
+                {{ create_form.quantity_per_ctn(class="form-control" + (' is-invalid' if create_form.quantity_per_ctn.errors else '')) }}
+                {% for error in create_form.quantity_per_ctn.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Production Information -->
+        <div class="card mb-4">
+          <div class="card-header">Manufacturing Details</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                {{ create_form.moq.label(class="form-label") }}
+                {{ create_form.moq(class="form-control" + (' is-invalid' if create_form.moq.errors else '')) }}
+                {% for error in create_form.moq.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.package_type.label(class="form-label") }}
+                {{ create_form.package_type(class="form-control" + (' is-invalid' if create_form.package_type.errors else '')) }}
+                {% for error in create_form.package_type.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-md-4">
+                {{ create_form.production_time.label(class="form-label") }}
+                {{ create_form.production_time(class="form-control", maxlength="50", placeholder="e.g. 4-6 weeks") }}
+              </div>
+              <div class="col-md-6">
+                {{ create_form.imprint_location.label(class="form-label") }}
+                {{ create_form.imprint_location(class="form-control") }}
+              </div>
+              <div class="col-md-6">
+                {{ create_form.imprint_dimensions.label(class="form-label") }}
+                {{ create_form.imprint_dimensions(class="form-control") }}
+              </div>
+              <div class="col-12">
+                {{ create_form.imprint_types.label(class="form-label") }}
+                {{ create_form.imprint_types(class="form-control", placeholder="Comma-separated values") }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Package Details -->
+        <div class="card mb-4">
+          <div class="card-header">Descriptive Information</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12">
+                {{ create_form.description.label(class="form-label") }}
+                {{ create_form.description(class="form-control", rows=4) }}
+              </div>
+              <div class="col-12">
+                {{ create_form.keywords.label(class="form-label") }}
+                {{ create_form.keywords(class="form-control", placeholder="Comma-separated keywords") }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Tiers Section -->
+        <div class="card mb-4">
+          <div class="card-header">Pricing Tiers</div>
+          <div class="card-body" id="tiers-container">
+            <div class="tier-row mb-2" data-tier-index="0">
+              <div class="row">
+                <div class="col">
+                  <input type="number" class="form-control" name="tier-min" placeholder="Quantity" required>
+                </div>
+                <div class="col">
+                  <input type="number" class="form-control" name="tier-price" placeholder="Cost per unit" step="0.01" required>
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-primary add-tier">Add</button>
+                  <button type="button" class="btn btn-danger remove-tier">&times;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">Save Product</button>
+          <a href="{{ url_for('product.list') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('tiers-container');
+  const MAX_TIERS = 7;
+
+  function updateButtonVisibility() {
+    const tiers = container.querySelectorAll('.tier-row');
+    tiers.forEach((tier, index) => {
+      const addButton = tier.querySelector('.add-tier');
+      const removeButton = tier.querySelector('.remove-tier');
+      tier.dataset.tierIndex = index;
+      removeButton.style.display = index > 0 ? 'inline-block' : 'none';
+      addButton.style.display = (index === container.children.length - 1 && container.children.length < MAX_TIERS) ? 'inline-block' : 'none';
+    });
+  }
+
+  container.addEventListener('click', function(e) {
+    if(e.target.classList.contains('add-tier')) {
+      const newRow = e.target.closest('.tier-row').cloneNode(true);
+      newRow.querySelectorAll('input').forEach(input => input.value = '');
+      container.appendChild(newRow);
+      updateButtonVisibility();
+    }
+    
+    if(e.target.classList.contains('remove-tier')) {
+      if(container.children.length > 1) {
+        e.target.closest('.tier-row').remove();
+        updateButtonVisibility();
+      }
+    }
+  });
+
+  updateButtonVisibility();
+});
+</script>
+{% endblock %}

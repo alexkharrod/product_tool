@@ -1,40 +1,10 @@
 from datetime import datetime
 from enum import Enum
+import sqlalchemy as sa
 from sqlalchemy import CheckConstraint, ForeignKey
 from sqlalchemy.orm import validates, relationship
 from application import db
-import sqlalchemy as sa
-
-class QuoteTier(db.Model):
-    __tablename__ = "quote_tiers"
-    
-    id = db.Column(db.Integer, primary_key=True)
-    quote_id = db.Column(db.Integer, ForeignKey('quotes.id'), nullable=False)
-    tier_number = db.Column(db.Integer, nullable=False)  # 1-5
-    quantity = db.Column(db.Integer, nullable=False)
-    air_freight = db.Column(db.Float)
-    ocean_freight = db.Column(db.Float)
-    markup = db.Column(db.Float)
-    quote_price = db.Column(db.Float, nullable=False)
-    
-    __table_args__ = (
-        CheckConstraint("tier_number BETWEEN 1 AND 5", name="check_tier_number_range"),
-        CheckConstraint("quantity > 0", name="check_positive_quantity"),
-        CheckConstraint("quote_price > 0", name="check_positive_price"),
-    )
-    
-    @validates('quantity')
-    def validate_quantity(self, key, value):
-        if value <= 0:
-            raise ValueError("Quantity must be positive")
-        return value
-        
-    @validates('quote_price')
-    def validate_price(self, key, value):
-        if value <= 0:
-            raise ValueError("Price must be positive")
-        return value
-
+from .quote_tier import QuoteTier
 
 class QuoteStatus(Enum):
     OPEN = "Open"
@@ -48,7 +18,7 @@ class Quote(db.Model):
     quote_number = db.Column(db.Integer, unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(
-        db.Integer, db.ForeignKey("user.id", name="fk_quote_user"), nullable=False
+        db.Integer, db.ForeignKey("users.id", name="fk_quote_user"), nullable=False
     )
     customer_name = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(20), default=QuoteStatus.OPEN.value)
@@ -69,7 +39,7 @@ class Quote(db.Model):
 
     # Pricing Tiers (1-5)
     tiers = relationship("QuoteTier", 
-                        backref="quote", 
+                        back_populates="quote",
                         cascade="all, delete-orphan",
                         order_by="QuoteTier.tier_number")
 
@@ -83,10 +53,8 @@ class Quote(db.Model):
     user = db.relationship("User", backref="quotes")
 
     __table_args__ = (
-        CheckConstraint(
-            "(SELECT COUNT(*) FROM quote_tiers WHERE quote_id = id) BETWEEN 1 AND 5",
-            name="check_tier_count"
-        ),
+        # Removed SQLite-incompatible check constraint
+        # Validation now handled at application level in validate_tiers()
     )
 
     @validates('tiers')

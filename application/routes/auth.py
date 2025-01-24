@@ -1,32 +1,79 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from datetime import datetime, timedelta
+
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
 
 from application import db
 from application.forms import LoginForm
-from application.models.user import User
+from application.models.user import Permission, User
 
 bp = Blueprint("auth", __name__)
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
+    try:
+        if current_user.is_authenticated:
+            return redirect(url_for("main.index"))
 
-    form = LoginForm()
+        form = LoginForm()
 
-    if form.validate_on_submit():
-        user = User.get_by_email(form.email.data)
+        if form.validate_on_submit():
+            user = User.get_by_email(form.email.data)
 
-        if user is None or not user.check_password(form.password.data):
-            flash("Invalid email or password", "danger")
-            return redirect(url_for("auth.login"))
+            # Security: Prevent user enumeration
+            if not user or not user.check_password(form.password.data):
+                current_app.logger.warning(
+                    f"Failed login attempt for email: {form.email.data}"
+                )
+                flash("Invalid credentials", "danger")
+                return redirect(url_for("auth.login"))
 
-        login_user(user, remember=form.remember.data)
-        flash(f"Welcome back {user.email}!", "success")
-        return redirect(url_for("admin.dashboard"))
+            # Security: Check account status
+            if not user.active:
+                flash("This account is deactivated", "danger")
+                return redirect(url_for("auth.login"))
 
-    return render_template("auth/login.html", form=form)
+            # Security: Check failed attempts and lock duration
+            if user.failed_attempts >= 5:
+                if user.locked_until and user.locked_until > datetime.utcnow():
+                    flash("Account locked - contact support", "danger")
+                    return redirect(url_for("auth.login"))
+                # Auto-unlock after 1 hour
+                user.locked_until = datetime.utcnow() + timedelta(hours=1)
+                db.session.commit()
+                flash("Account locked - contact support", "danger")
+                return redirect(url_for("auth.login"))
+
+            login_user(user, remember=form.remember.data)
+            user.failed_login_attempts = 0  # Reset counter
+            db.session.commit()
+
+            # Audit logging
+            current_app.logger.info(f"User login: {user.id}")
+
+            # Role-based redirect
+            redirect_to = (
+                url_for("admin.dashboard")
+                if user.permissions & Permission.ADMIN
+                else url_for("main.index")
+            )
+            return redirect(redirect_to)
+
+        return render_template("auth/login.html", form=form)
+
+    except Exception as e:
+        current_app.logger.error(f"Login error: {str(e)}", exc_info=True)
+        flash("Authentication service unavailable - try again later", "danger")
+        return redirect(url_for("auth.login"))
 
 
 @bp.route("/profile", methods=["GET", "POST"])

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Edit {{ product.sku }}</h1>
+    <div>
+      <a href="{{ url_for('product.view', id=product.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i> Cancel
+      </a>
+      <button type="submit" form="editForm" class="btn btn-primary">
+        <i class="bi bi-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" id="editForm">
+        {{ edit_form.hidden_tag() }}
+        
+        <div class="row g-3">
+          <!-- Left Column -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              {{ edit_form.sku.label(class="form-label") }}
+              {{ edit_form.sku(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.name.label(class="form-label") }}
+              {{ edit_form.name(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.vendor_name.label(class="form-label") }}
+              {{ edit_form.vendor_name(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.category.label(class="form-label") }}
+              {{ edit_form.category(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.image_url.label(class="form-label") }}
+              {{ edit_form.image_url(class="form-control") }}
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              {{ edit_form.package_type.label(class="form-label") }}
+              {{ edit_form.package_type(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.production_time.label(class="form-label") }}
+              {{ edit_form.production_time(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.moq.label(class="form-label") }}
+              {{ edit_form.moq(class="form-control") }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.quantity_per_ctn.label(class="form-label") }}
+              {{ edit_form.quantity_per_ctn(class="form-control") }}
+            </div>
+          </div>
+
+          <!-- Full Width Fields -->
+          <div class="col-12">
+            <div class="mb-3">
+              {{ edit_form.description.label(class="form-label") }}
+              {{ edit_form.description(class="form-control", rows=4) }}
+            </div>
+            
+            <div class="mb-3">
+              {{ edit_form.keywords.label(class="form-label") }}
+              {{ edit_form.keywords(class="form-control") }}
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

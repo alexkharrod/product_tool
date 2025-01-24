@@ -5,13 +5,13 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from .config import DevelopmentConfig
 
-# Initialize extensions first
+# Initialize extensions once
 db = SQLAlchemy()
 login = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 
-# Import models after extensions but before migrate initialization
+# Import models after extensions
 from application.models.user import User
 from application.models.product import Product, ProductTier
 from application.models.quote import Quote
@@ -30,7 +30,7 @@ def create_app(config_class=DevelopmentConfig):
                 return 'Never'
             if isinstance(value, datetime):
                 return value.strftime(format)
-            return value.strftime(format)  # Handle dateutil objects
+            return value.strftime(format)
         except Exception as e:
             app.logger.error(f"Datetime filter error: {str(e)}")
             return 'Invalid date'
@@ -47,20 +47,19 @@ def create_app(config_class=DevelopmentConfig):
     csrf.init_app(app)
     
     with app.app_context():
-        # Configure all model relationships
         db.configure_mappers()
     
-    # Register blueprints with URL prefixes
+    # Register blueprints
     from application.routes.main import main_bp
     from application.routes.auth import bp as auth_bp
     from application.routes.product import product as product_bp
     from application.routes.quote import bp as quote_bp
     from application.routes.admin.dashboard import admin_bp
 
-    app.register_blueprint(main_bp, url_prefix='/')
+    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(product_bp, url_prefix='/')
+    app.register_blueprint(product_bp, url_prefix='/products')
     app.register_blueprint(quote_bp, url_prefix='/quotes')
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
     
     return app

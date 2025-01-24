@@ -1,8 +1,8 @@
-"""Initial migration
+"""Fix user model relationship
 
-Revision ID: v1
+Revision ID: babb25db8f9a
 Revises: 
-Create Date: 2025-01-23 09:28:25.279003
+Create Date: 2025-01-24 14:08:07.394402
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'v1'
+revision = 'babb25db8f9a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,16 +24,15 @@ def upgrade():
     sa.Column('description', sa.String(length=200), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('user',
+    op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
-    sa.Column('role', sa.Enum('ADMIN', 'MARKETING', 'USER', name='role'), nullable=False),
+    sa.Column('permissions', sa.Integer(), nullable=False, comment='Bitwise combination of Permission flags'),
     sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.Column('failed_attempts', sa.Integer(), nullable=True),
     sa.Column('locked_until', sa.DateTime(), nullable=True),
-    sa.Column('remember_token', sa.String(length=100), nullable=True),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('active', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -46,79 +45,97 @@ def upgrade():
     sa.Column('entity_id', sa.String(length=50), nullable=False),
     sa.Column('changes', sa.JSON(), nullable=True),
     sa.Column('ip_address', sa.String(length=45), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('products',
+    sa.Column('config_id', sa.Integer(), nullable=True),
+    sa.Column('created_by_id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sku', sa.String(length=50), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('vendor_name', sa.String(length=100), nullable=False),
-    sa.Column('vendor_part_number', sa.String(length=50), nullable=True),
-    sa.Column('category', sa.String(length=100), nullable=False),
+    sa.Column('vendor_part_number', sa.String(length=15), nullable=True),
+    sa.Column('category', sa.String(length=5), nullable=False),
     sa.Column('keywords', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('image_url', sa.String(length=500), nullable=True),
-    sa.Column('width_cm', sa.Float(), nullable=False),
-    sa.Column('length_cm', sa.Float(), nullable=False),
-    sa.Column('height_cm', sa.Float(), nullable=False),
-    sa.Column('weight_kg', sa.Float(), nullable=False),
-    sa.Column('quantity_per_carton', sa.Integer(), nullable=False),
+    sa.Column('length', sa.Float(), nullable=False),
+    sa.Column('width', sa.Float(), nullable=False),
+    sa.Column('height', sa.Float(), nullable=False),
+    sa.Column('weight', sa.Float(), nullable=False),
+    sa.Column('quantity_per_ctn', sa.Integer(), nullable=False),
     sa.Column('moq', sa.Integer(), nullable=False),
     sa.Column('package_type', sa.String(length=100), nullable=True),
     sa.Column('imprint_location', sa.String(length=100), nullable=True),
     sa.Column('imprint_dimensions', sa.String(length=50), nullable=True),
     sa.Column('imprint_types', sa.String(length=200), nullable=True),
-    sa.Column('production_time', sa.String(length=50), nullable=True),
+    sa.Column('production_time', sa.String(length=50), nullable=False, comment="Production time description (e.g. '4-6 weeks')"),
     sa.Column('stock_date', sa.Date(), nullable=True),
     sa.Column('in_spreadsheet', sa.Boolean(), nullable=True),
     sa.Column('price_list_created', sa.Boolean(), nullable=True),
     sa.Column('new_products_sheet_created', sa.Boolean(), nullable=True),
     sa.Column('in_qb', sa.Boolean(), nullable=True),
     sa.Column('in_web', sa.Boolean(), nullable=True),
-    sa.Column('config_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['config_id'], ['configurations.id'], ),
-    sa.PrimaryKeyConstraint('sku')
+    sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('sku')
+    )
+    op.create_table('product_tiers',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('unit_cost', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('effective_date', sa.Date(), nullable=False),
+    sa.Column('index', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('quotes',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quote_number', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('rep_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('customer_name', sa.String(length=100), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=True),
     sa.Column('product_sku', sa.String(length=50), nullable=False),
-    sa.Column('quantity1', sa.Integer(), nullable=False),
-    sa.Column('quantity2', sa.Integer(), nullable=True),
-    sa.Column('quantity3', sa.Integer(), nullable=True),
-    sa.Column('air_freight1', sa.Float(), nullable=True),
-    sa.Column('ocean_freight1', sa.Float(), nullable=True),
-    sa.Column('markup1', sa.Float(), nullable=True),
-    sa.Column('quote_price1', sa.Float(), nullable=False),
-    sa.Column('air_freight2', sa.Float(), nullable=True),
-    sa.Column('ocean_freight2', sa.Float(), nullable=True),
-    sa.Column('markup2', sa.Float(), nullable=True),
-    sa.Column('quote_price2', sa.Float(), nullable=True),
-    sa.Column('air_freight3', sa.Float(), nullable=True),
-    sa.Column('ocean_freight3', sa.Float(), nullable=True),
-    sa.Column('markup3', sa.Float(), nullable=True),
-    sa.Column('quote_price3', sa.Float(), nullable=True),
+    sa.Column('length', sa.Numeric(precision=6, scale=1), nullable=False, comment='Length in centimeters'),
+    sa.Column('width', sa.Numeric(precision=6, scale=1), nullable=False, comment='Width in centimeters'),
+    sa.Column('height', sa.Numeric(precision=6, scale=1), nullable=False, comment='Height in centimeters'),
+    sa.Column('weight', sa.Numeric(precision=8, scale=2), nullable=False, comment='Weight in kilograms'),
+    sa.Column('quantity_per_ctn', sa.Integer(), nullable=False, comment='Units per carton'),
     sa.Column('pdf_data', sa.LargeBinary(), nullable=True),
     sa.Column('generated_at', sa.DateTime(), nullable=True),
     sa.Column('last_printed', sa.DateTime(), nullable=True),
-    sa.CheckConstraint('quantity2 > quantity1 OR quantity2 IS NULL', name='check_quantity_order_1_2'),
-    sa.CheckConstraint('quantity3 > quantity2 OR quantity3 IS NULL', name='check_quantity_order_2_3'),
-    sa.ForeignKeyConstraint(['product_sku'], ['products.sku'], ),
-    sa.ForeignKeyConstraint(['rep_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['product_sku'], ['products.sku'], name='fk_quote_product'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name='fk_quote_user'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('quote_number')
+    )
+    op.create_table('quote_tiers',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('tier_number', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=80), nullable=False),
+    sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('quote_id', sa.Integer(), nullable=False),
+    sa.CheckConstraint('price > 0', name='check_positive_price'),
+    sa.CheckConstraint('tier_number BETWEEN 1 AND 5', name='check_tier_range'),
+    sa.ForeignKeyConstraint(['quote_id'], ['quotes.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    comment='Pricing tiers for volume discounts'
     )
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('quote_tiers')
     op.drop_table('quotes')
+    op.drop_table('product_tiers')
     op.drop_table('products')
     op.drop_table('audit_logs')
-    op.drop_table('user')
+    op.drop_table('users')
     op.drop_table('configurations')
     # ### end Alembic commands ###
