@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
+    {# Flash Messages #}
+    <div class="flash-messages">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
   <h2>{% if product %}Edit Product{% else %}Create New Product{% endif %}</h2>
   <form method="POST" enctype="multipart/form-data">
     {{ create_form.hidden_tag() }}
@@ -12,23 +25,45 @@
         <div class="row g-3">
           <div class="col-md-4">
             {{ create_form.sku.label(class="form-label") }}
-            {{ create_form.sku(class="form-control", pattern="[A-Z0-9-]{5,}") }}
+            {{ create_form.sku(class="form-control" + (' is-invalid' if create_form.sku.errors else '')) }}
+            {% for error in create_form.sku.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.name.label(class="form-label") }}
+            {{ create_form.name(class="form-control" + (' is-invalid' if create_form.name.errors else ''), maxlength="100") }}
+            {% for error in create_form.name.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-4">
             {{ create_form.vendor_name.label(class="form-label") }}
-            {{ create_form.vendor_name(class="form-control") }}
+            {{ create_form.vendor_name(class="form-control" + (' is-invalid' if create_form.vendor_name.errors else '')) }}
+            {% for error in create_form.vendor_name.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-4">
             {{ create_form.vendor_part_number.label(class="form-label") }}
-            {{ create_form.vendor_part_number(class="form-control") }}
+            {{ create_form.vendor_part_number(class="form-control" + (' is-invalid' if create_form.vendor_part_number.errors else '')) }}
+            {% for error in create_form.vendor_part_number.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-6">
             {{ create_form.category.label(class="form-label") }}
-            {{ create_form.category(class="form-control") }}
+            {{ create_form.category(class="form-control" + (' is-invalid' if create_form.category.errors else '')) }}
+            {% for error in create_form.category.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-6">
             {{ create_form.image_url.label(class="form-label") }}
-            {{ create_form.image_url(class="form-control") }}
+            {{ create_form.image_url(class="form-control" + (' is-invalid' if create_form.image_url.errors else '')) }}
+            {% for error in create_form.image_url.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
         </div>
       </div>
@@ -41,23 +76,38 @@
         <div class="row g-3">
           <div class="col-md-3">
             {{ create_form.length.label(class="form-label") }}
-            {{ create_form.length(class="form-control", step="0.01") }}
+            {{ create_form.length(class="form-control" + (' is-invalid' if create_form.length.errors else ''), step="0.01") }}
+            {% for error in create_form.length.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-3">
             {{ create_form.width.label(class="form-label") }}
-            {{ create_form.width(class="form-control", step="0.01") }}
+            {{ create_form.width(class="form-control" + (' is-invalid' if create_form.width.errors else ''), step="0.01") }}
+            {% for error in create_form.width.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-3">
             {{ create_form.height.label(class="form-label") }}
-            {{ create_form.height(class="form-control", step="0.01") }}
+            {{ create_form.height(class="form-control" + (' is-invalid' if create_form.height.errors else ''), step="0.01") }}
+            {% for error in create_form.height.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-3">
             {{ create_form.weight.label(class="form-label") }}
-            {{ create_form.weight(class="form-control", step="0.01") }}
+            {{ create_form.weight(class="form-control" + (' is-invalid' if create_form.weight.errors else ''), step="0.01") }}
+            {% for error in create_form.weight.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-4">
             {{ create_form.quantity_per_ctn.label(class="form-label") }}
-            {{ create_form.quantity_per_ctn(class="form-control") }}
+            {{ create_form.quantity_per_ctn(class="form-control" + (' is-invalid' if create_form.quantity_per_ctn.errors else '')) }}
+            {% for error in create_form.quantity_per_ctn.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
         </div>
       </div>
@@ -70,15 +120,21 @@
         <div class="row g-3">
           <div class="col-md-4">
             {{ create_form.moq.label(class="form-label") }}
-            {{ create_form.moq(class="form-control") }}
+            {{ create_form.moq(class="form-control" + (' is-invalid' if create_form.moq.errors else '')) }}
+            {% for error in create_form.moq.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-4">
             {{ create_form.package_type.label(class="form-label") }}
-            {{ create_form.package_type(class="form-control") }}
+            {{ create_form.package_type(class="form-control" + (' is-invalid' if create_form.package_type.errors else '')) }}
+            {% for error in create_form.package_type.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
           <div class="col-md-4">
             {{ create_form.production_time.label(class="form-label") }}
-            {{ create_form.production_time(class="form-control") }}
+            {{ create_form.production_time(class="form-control", maxlength="50", placeholder="e.g. 4-6 weeks") }}
           </div>
           <div class="col-md-6">
             {{ create_form.imprint_location.label(class="form-label") }}

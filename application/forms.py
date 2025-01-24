@@ -69,18 +69,25 @@ class ProductSearchForm(FlaskForm):
 
 
 class ProductForm(FlaskForm):
+    # Remove the created_by_id field since we'll set this programmatically
     # Product Identification
     sku = StringField(
         "SKU",
         validators=[
             DataRequired(),
-            Length(min=4, max=20),
-            Regexp(
-                r"^[A-Z0-9-]+$",
-                message="SKU must be uppercase letters, numbers and hyphens only",
-            ),
+            Length(min=4),
         ],
         render_kw={"placeholder": "PROD-12345"},
+    )
+
+    name = StringField(
+        "Product Name",
+        validators=[
+            DataRequired(),
+            Length(min=2, max=100),
+            Regexp(r"^[\w\s-]+$", message="Use letters, numbers, spaces and hyphens only")
+        ],
+        render_kw={"placeholder": "Acme Premium Widget"}
     )
 
     vendor_name = StringField(
@@ -123,8 +130,16 @@ class ProductForm(FlaskForm):
         "Package Type", validators=[DataRequired(), Length(min=2, max=50)]
     )
 
-    production_time = IntegerField(
-        "Production Time (days)", validators=[DataRequired(), NumberRange(min=1)]
+    production_time = StringField(
+        "Production Time",
+        validators=[
+            DataRequired(),
+            Length(max=50),
+            Regexp(
+                r"^[\w\s-]+$", message="Use letters, numbers, spaces and hyphens only"
+            ),
+        ],
+        render_kw={"placeholder": "e.g. '3-5 days'"},
     )
 
     imprint_location = StringField("Imprint Location", validators=[Length(max=100)])

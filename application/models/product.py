@@ -10,9 +10,11 @@ class Product(db.Model):
 
     # Configuration Relationship
     config_id = db.Column(db.Integer, db.ForeignKey('configurations.id'))
+    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     # Primary Information
-    sku = db.Column(db.String(10), primary_key=True)
+    sku = db.Column(db.String(50), primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
     vendor_name = db.Column(db.String(100), nullable=False)
     vendor_part_number = db.Column(db.String(15))
     category = db.Column(db.String(5), nullable=False)
@@ -33,7 +35,7 @@ class Product(db.Model):
     imprint_location = db.Column(db.String(100))
     imprint_dimensions = db.Column(db.String(50))
     imprint_types = db.Column(db.String(200))
-    production_time = db.Column(db.String(50))
+    production_time = db.Column(db.String(50), nullable=False, comment="Production time description (e.g. '4-6 weeks')")
     stock_date = db.Column(db.Date)
 
     # Status Tracking
@@ -47,6 +49,7 @@ class Product(db.Model):
     quotes = db.relationship(
         "Quote", back_populates="product", cascade="all, delete-orphan", lazy=True
     )
+    created_by = db.relationship("User", back_populates="products")
     tiers = db.relationship(
         "ProductTier", 
         backref="product", 
@@ -58,8 +61,6 @@ class Product(db.Model):
     # Validations
     @validates("sku")
     def validate_sku(self, key, sku):
-        if not re.match(r"^[A-Z0-9-]{5,}$", sku):
-            raise ValueError("Invalid SKU format")
         if Product.query.filter_by(sku=sku).first() and not self.sku:
             raise ValueError("SKU must be unique")
         return sku
@@ -76,6 +77,14 @@ class Product(db.Model):
     def validate_dimensions(self, key, value):
         if value <= 0:
             raise ValueError(f"{key} must be positive")
+        return value
+
+    @validates("production_time")
+    def validate_production_time(self, key, value):
+        if not isinstance(value, str):
+            raise ValueError("Production time must be a string")
+        if len(value) > 50:
+            raise ValueError("Production time cannot exceed 50 characters")
         return value
 
     @validates("tiers")
@@ -115,7 +124,7 @@ class Product(db.Model):
 class ProductTier(db.Model):
     __tablename__ = "product_tiers"
     id = db.Column(db.Integer, primary_key=True)
-    product_sku = db.Column(db.String(10), db.ForeignKey('products.sku'), nullable=False)
+    product_sku = db.Column(db.String(50), db.ForeignKey('products.sku'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     unit_cost = db.Column(db.Numeric(10,2), nullable=False)
     effective_date = db.Column(db.Date, default=datetime.utcnow, nullable=False)

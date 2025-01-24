@@ -44,6 +44,7 @@ class User(db.Model, UserMixin):
     locked_until = db.Column(db.DateTime)
     remember_token = db.Column(db.String(100))
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    products = db.relationship("Product", back_populates="created_by", lazy="dynamic")
 
     def __repr__(self):
         """Official string representation of User instance.
