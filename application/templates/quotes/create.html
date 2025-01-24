@@ -12,12 +12,75 @@
             {% endfor %}
         </div>
 
+        <div class="form-group mb-4">
+            {{ form.product_sku.label }}
+            {{ form.product_sku(class="form-select") }}
+            {% for error in form.product_sku.errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <h4 class="mt-4 mb-3">Product Dimensions</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                {{ form.length.label }}
+                <div class="input-group">
+                    {{ form.length(class="form-control", step="0.1") }}
+                    <span class="input-group-text">cm</span>
+                </div>
+                {% for error in form.length.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {{ form.width.label }}
+                <div class="input-group">
+                    {{ form.width(class="form-control", step="0.1") }}
+                    <span class="input-group-text">cm</span>
+                </div>
+                {% for error in form.width.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {{ form.height.label }}
+                <div class="input-group">
+                    {{ form.height(class="form-control", step="0.1") }}
+                    <span class="input-group-text">cm</span>
+                </div>
+                {% for error in form.height.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {{ form.weight.label }}
+                <div class="input-group">
+                    {{ form.weight(class="form-control", step="0.01") }}
+                    <span class="input-group-text">kg</span>
+                </div>
+                {% for error in form.weight.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+                {{ form.quantity_per_ctn.label }}
+                <div class="input-group">
+                    {{ form.quantity_per_ctn(class="form-control") }}
+                    <span class="input-group-text">per carton</span>
+                </div>
+                {% for error in form.quantity_per_ctn.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
         <h4 class="mt-4 mb-3">Pricing Tiers</h4>
         <table class="table table-bordered mt-3">
             <thead class="table-light">
                 <tr>
                     <th>Tier</th>
                     <th>Quantity</th>
+                    <th>Unit Cost</th>
                     <th>Price</th>
                     <th>Air Freight</th>
                     <th>Ocean Freight</th>
@@ -26,27 +89,45 @@
                 </tr>
             </thead>
             <tbody id="tiersContainer">
-                {% for tier in form.tiers %}
+                {% for tier_form in form.tiers %}
                 <tr class="tier-row">
                     <td class="align-middle">{{ loop.index }}</td>
                     <td>
-                        {{ tier.quantity(class="form-control text-end", max="99999999", placeholder="Qty") }}
-                        {% for error in tier.quantity.errors %}
+                        {{ tier_form.quantity(class="form-control text-end", min="1", placeholder="Qty", required=true) }}
+                        {% for error in tier_form.quantity.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     </td>
                     <td>
-                        {{ tier.quote_price(class="form-control text-end", step="0.01", placeholder="0.00") }}
-                        {% for error in tier.quote_price.errors %}
+                        {{ tier_form.quote_price(class="form-control text-end", step="0.01", min="0.01", placeholder="0.00", required=true) }}
+                        {% for error in tier_form.quote_price.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     </td>
-                    <td>{{ tier.air_freight(class="form-control text-end", step="0.01", placeholder="0.00") }}</td>
-                    <td>{{ tier.ocean_freight(class="form-control text-end", step="0.01", placeholder="0.00") }}</td>
-                    <td>{{ tier.markup(class="form-control text-end", step="0.01", placeholder="0.00") }}</td>
+                    <td>
+                        {{ tier_form.air_freight(class="form-control text-end", step="0.01", min="0", placeholder="0.00") }}
+                        {% for error in tier_form.air_freight.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {{ tier_form.ocean_freight(class="form-control text-end", step="0.01", min="0", placeholder="0.00") }}
+                        {% for error in tier_form.ocean_freight.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {{ tier_form.markup(class="form-control text-end", step="0.01", min="0", max="99.99", placeholder="0.00") }}
+                        {% for error in tier_form.markup.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    </td>
                     <td class="align-middle">
                         {% if loop.index > 1 %}
-                        <button type="button" class="btn btn-danger btn-sm remove-tier">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                hx-post="{{ url_for('quote.remove_tier') }}"
+                                hx-target="#tiersContainer"
+                                hx-swap="outerHTML">Remove</button>
                         {% endif %}
                     </td>
                 </tr>
@@ -55,10 +136,8 @@
         </table>
 
         <div class="mb-3">
-            <button type="button" id="addTier" class="btn btn-secondary"
-                {% if form.tiers|length >=5 %}disabled{% endif %}>
-                Add More Tiers (Max 5)
-            </button>
+            {{ form.add_tier(class="btn btn-secondary") }}
+            <small class="text-muted ms-2">Maximum 5 tiers</small>
         </div>
 
         <div class="form-group">
@@ -66,93 +145,4 @@
         </div>
     </form>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('tiersContainer');
-        const addButton = document.getElementById('addTier');
-        let tierCount = {{ form.tiers|length }};
-
-        addButton.addEventListener('click', function() {
-            if (tierCount >= 5) return;
-            
-            const template = document.createElement('template');
-            template.innerHTML = `
-                <tr class="tier-row">
-                    <td class="align-middle">${tierCount + 1}</td>
-                    <td>
-                        <input class="form-control text-end" 
-                            name="tiers-${tierCount}-quantity" 
-                            id="tiers-${tierCount}-quantity"
-                            type="number" 
-                            min="1" 
-                            max="99999999" 
-                            required
-                            placeholder="Qty">
-                        <div class="invalid-feedback">Required minimum quantity</div>
-                    </td>
-                    <td>
-                        <input class="form-control text-end" 
-                            name="tiers-${tierCount}-quote_price" 
-                            id="tiers-${tierCount}-quote_price"
-                            type="number" 
-                            step="0.01" 
-                            min="0.01" 
-                            max="99999999.99"
-                            required
-                            placeholder="0.00">
-                        <div class="invalid-feedback">Valid price required</div>
-                    </td>
-                    <td>
-                        <input class="form-control text-end" 
-                            name="tiers-${tierCount}-air_freight" 
-                            id="tiers-${tierCount}-air_freight"
-                            type="number" 
-                            step="0.01" 
-                            max="99999.99"
-                            placeholder="0.00">
-                    </td>
-                    <td>
-                        <input class="form-control text-end" 
-                            name="tiers-${tierCount}-ocean_freight" 
-                            id="tiers-${tierCount}-ocean_freight"
-                            type="number" 
-                            step="0.01" 
-                            max="99999.99"
-                            placeholder="0.00">
-                    </td>
-                    <td>
-                        <input class="form-control text-end" 
-                            name="tiers-${tierCount}-markup" 
-                            id="tiers-${tierCount}-markup"
-                            type="number" 
-                            step="0.01" 
-                            min="0" 
-                            max="99.99"
-                            placeholder="40">
-                        <div class="invalid-feedback">Max 99.99%</div>
-                    </td>
-                    <td class="align-middle">
-                        <button type="button" class="btn btn-danger btn-sm remove-tier">Remove</button>
-                    </td>
-                </tr>
-            `.trim();
-            
-            container.appendChild(template.content.firstChild);
-            tierCount++;
-            if (tierCount >= 5) addButton.disabled = true;
-        });
-
-        container.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-tier')) {
-                e.target.closest('tr').remove();
-                tierCount--;
-                addButton.disabled = tierCount >= 5;
-                // Update tier numbers
-                Array.from(container.querySelectorAll('.tier-row')).forEach((row, index) => {
-                    row.cells[0].textContent = index + 1;
-                });
-            }
-        });
-    });
-    </script>
 {% endblock %}

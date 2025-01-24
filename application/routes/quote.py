@@ -1,7 +1,9 @@
 import logging
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
+from sqlalchemy.exc import IntegrityError
 from application.models.quote import Quote, QuoteTier
+from application.models.product import Product
 from application.forms import QuoteForm
 from application import db
 
@@ -16,38 +18,56 @@ def quote_list():
 @bp.route('/quotes/create', methods=['GET', 'POST'])
 @login_required
 def create_quote():
-    """Handle quote creation with dynamic tiers"""
+    """Handle quote creation with product selection and tiered pricing"""
     form = QuoteForm()
+    form.product_sku.choices = [(p.sku, p.name) for p in Product.query.all()]
     
-    # Handle "Add Tier" button click
     if form.add_tier.data:
         form.tiers.append_entry()
         return render_template('quotes/create.html', form=form)
         
     if form.validate_on_submit():
         try:
-            # Create base quote
+            # Get selected product
+            product = Product.query.filter_by(sku=form.product_sku.data).first()
+            if not product:
+                flash('Selected product not found', 'danger')
+                return redirect(url_for('quote.create_quote'))
+            
+            # Create new quote
             quote = Quote(
                 customer_name=form.customer_name.data.strip(),
                 user_id=current_user.id,
+                product_sku=product.sku,
+                length=form.length.data,
+                width=form.width.data,
+                height=form.height.data,
+                weight=form.weight.data,
+                quantity_per_ctn=form.quantity_per_ctn.data,
                 status='Draft',
                 quote_number=Quote.generate_quote_number()
             )
             db.session.add(quote)
-            db.session.flush()  # Get quote ID
+            db.session.flush()
             
-            # Process tiers
+            # Process tiers with validation
             for idx, tier_form in enumerate(form.tiers):
+                # Create and validate tier
                 tier = QuoteTier(
                     tier_number=idx+1,
-                    quantity=tier_form.quantity.data,
-                    quote_price=tier_form.quote_price.data,
-                    air_freight=tier_form.air_freight.data or 0.0,
-                    ocean_freight=tier_form.ocean_freight.data or 0.0,
-                    markup=tier_form.markup.data or 0.0,
-                    quote_id=quote.id
+                    quantity=int(tier_form.quantity.data),
+                    quote_price=float(tier_form.quote_price.data),
+                    air_freight=float(tier_form.air_freight.data or 0.0),
+                    ocean_freight=float(tier_form.ocean_freight.data or 0.0),
+                    markup=float(tier_form.markup.data or 0.0),
+                    product_sku=product.sku
                 )
-                db.session.add(tier)
+                
+                if tier.quantity < 1:
+                    raise ValueError(f"Tier {idx+1} quantity must be at least 1")
+                
+                # Add tier through relationship
+                quote.tiers.append(tier)
             
             # Validate quantity progression
             tiers = sorted(quote.tiers, key=lambda t: t.quantity)
@@ -66,10 +86,14 @@ def create_quote():
             db.session.rollback()
             logging.error(f'Validation error creating quote: {str(ve)}')
             flash(f'Invalid data: {str(ve)}', 'danger')
+        except IntegrityError as ie:
+            db.session.rollback()
+            logging.error(f'Database integrity error: {str(ie)}')
+            flash('A product with this SKU already exists. Please use a unique SKU.', 'danger')
         except Exception as e:
             db.session.rollback()
             logging.error(f'Error creating quote: {str(e)}', exc_info=True)
-            flash('Failed to create quote. Please try again.', 'danger')
+            flash(f'Failed to create quote: {str(e)}', 'danger')
     return render_template('quotes/create.html', form=form)
 
 @bp.route('/quotes/<int:id>/edit', methods=['GET', 'POST'])

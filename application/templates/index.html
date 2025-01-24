@@ -9,7 +9,8 @@
                 <div class="card-body">
                     <h5 class="card-title">Products</h5>
                     <p class="card-text">Manage product catalog and specifications</p>
-                    <a href="#" class="btn btn-primary">View Products</a>
+                    <a href="{{ url_for('product.list') }}" class="btn btn-primary me-2">View Products</a>
+                    <a href="{{ url_for('product.create') }}" class="btn btn-success">Add Product</a>
                 </div>
             </div>
         </div>
@@ -18,7 +19,8 @@
                 <div class="card-body">
                     <h5 class="card-title">Quotes</h5>
                     <p class="card-text">Create and manage customer quotes</p>
-                    <a href="#" class="btn btn-primary">View Quotes</a>
+                    <a href="{{ url_for('quote.quote_list') }}" class="btn btn-primary me-2">View Quotes</a>
+                    <a href="{{ url_for('quote.create_quote') }}" class="btn btn-success">Create Quote</a>
                 </div>
             </div>
         </div>

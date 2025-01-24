@@ -3,6 +3,7 @@ from enum import Enum
 from sqlalchemy import CheckConstraint, ForeignKey
 from sqlalchemy.orm import validates, relationship
 from application import db
+import sqlalchemy as sa
 
 class QuoteTier(db.Model):
     __tablename__ = "quote_tiers"
@@ -59,8 +60,18 @@ class Quote(db.Model):
         nullable=False,
     )
 
+    # Product Dimensions
+    length = db.Column(sa.Numeric(6,1), nullable=False, comment="Length in centimeters")
+    width = db.Column(sa.Numeric(6,1), nullable=False, comment="Width in centimeters")
+    height = db.Column(sa.Numeric(6,1), nullable=False, comment="Height in centimeters")
+    weight = db.Column(sa.Numeric(8,2), nullable=False, comment="Weight in kilograms")
+    quantity_per_ctn = db.Column(db.Integer, nullable=False, comment="Units per carton")
+
     # Pricing Tiers (1-5)
-    tiers = relationship("QuoteTier", backref="quote", cascade="all, delete-orphan")
+    tiers = relationship("QuoteTier", 
+                        backref="quote", 
+                        cascade="all, delete-orphan",
+                        order_by="QuoteTier.tier_number")
 
     # PDF Information
     pdf_data = db.Column(db.LargeBinary)

@@ -19,11 +19,11 @@ class Product(db.Model):
     image_url = db.Column(db.String(500))
     
     # Dimensional Information
-    width_cm = db.Column(db.Float, nullable=False)
-    length_cm = db.Column(db.Float, nullable=False)
-    height_cm = db.Column(db.Float, nullable=False)
-    weight_kg = db.Column(db.Float, nullable=False)
-    quantity_per_carton = db.Column(db.Integer, nullable=False)
+    length = db.Column(db.Float, nullable=False)
+    width = db.Column(db.Float, nullable=False)
+    height = db.Column(db.Float, nullable=False)
+    weight = db.Column(db.Float, nullable=False)
+    quantity_per_ctn = db.Column(db.Integer, nullable=False)
     
     # Production Information
     moq = db.Column(db.Integer, nullable=False)
@@ -62,7 +62,7 @@ class Product(db.Model):
                 raise ValueError('Invalid URL format')
         return url
     
-    @validates('width_cm', 'length_cm', 'height_cm', 'weight_kg')
+    @validates('width', 'length', 'height', 'weight')
     def validate_dimensions(self, key, value):
         if value <= 0:
             raise ValueError(f'{key} must be positive')
@@ -71,7 +71,7 @@ class Product(db.Model):
     @property
     def dimensional_weight(self):
         divisor = current_app.config['DIMENSIONAL_DIVISOR']
-        return (self.width_cm * self.length_cm * self.height_cm) / divisor
+        return (self.width * self.length * self.height) / divisor
     
     @property
     def completion_status(self):

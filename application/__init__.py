@@ -53,14 +53,13 @@ def create_app(config_class=DevelopmentConfig):
     # Register blueprints with URL prefixes
     from application.routes.main import main_bp
     from application.routes.auth import bp as auth_bp
-    from application.routes.product import bp as product_bp
+    from application.routes.product import product as product_bp
     from application.routes.quote import bp as quote_bp
     from application.routes.admin.dashboard import admin_bp
-    # Quote routes registered
 
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(product_bp, url_prefix='/products')
+    app.register_blueprint(product_bp, url_prefix='/')
     app.register_blueprint(quote_bp, url_prefix='/quotes')
     app.register_blueprint(admin_bp)
     

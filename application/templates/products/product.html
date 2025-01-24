@@ -3,181 +3,62 @@
 <div class="container mt-4">
   <h2>{% if product %}Edit Product{% else %}Create New Product{% endif %}</h2>
   <form method="POST" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
+    {{ create_form.hidden_tag() }}
     
-    <!-- Primary Information Card -->
-    <div class="card mb-4">
-      <div class="card-header">Primary Information</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-4">
-            {{ form.sku.label(class="form-label") }}*
-            {{ form.sku(class="form-control", pattern="[A-Z0-9-]+", 
-               title="Uppercase letters, numbers and hyphens only") }}
-            <div class="invalid-feedback">Invalid SKU format</div>
-          </div>
-          <!-- Vendor Fields -->
-          <div class="col-md-4">
-            {{ form.vendor_name.label(class="form-label") }}*
-            {{ form.vendor_name(class="form-control") }}
-          </div>
-          <div class="col-md-4">
-            {{ form.vendor_part_number.label(class="form-label") }}
-            {{ form.vendor_part_number(class="form-control") }}
-          </div>
-        </div>
-
-        <!-- Category & Keywords -->
-        <div class="row mt-3 g-3">
-          <div class="col-md-4">
-            {{ form.category.label(class="form-label") }}*
-            {{ form.category(class="form-select") }}
-          </div>
-          <div class="col-md-8">
-            {{ form.keywords.label(class="form-label") }}
-            {{ form.keywords(class="form-control", 
-               placeholder="Comma-separated search terms") }}
-          </div>
-        </div>
-
-        <!-- Rich Text Description -->
-        <div class="mt-3">
-          {{ form.description.label(class="form-label") }}*
-          {{ form.description(class="form-control", rows="6") }}
-        </div>
-
-        <!-- Image URL -->
-        <div class="mt-3">
-          {{ form.image_url.label(class="form-label") }}
-          {{ form.image_url(class="form-control", type="url") }}
-          <div class="invalid-feedback">Must be a valid URL</div>
-        </div>
-      </div>
+    <div class="form-group">
+      {{ create_form.name.label }} {{ create_form.name(class="form-control") }}
+    </div>
+    
+    <div class="form-group">
+      {{ create_form.description.label }} {{ create_form.description(class="form-control") }}
     </div>
 
-    <!-- Dimensional Information Card -->
+    <!-- Pricing Tiers Section -->
     <div class="card mb-4">
-      <div class="card-header">Dimensional Information</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-3">
-            {{ form.width.label(class="form-label") }} (cm)*
-            {{ form.width(class="form-control", min="0.1", step="0.1") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.length.label(class="form-label") }} (cm)*
-            {{ form.length(class="form-control", min="0.1", step="0.1") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.height.label(class="form-label") }} (cm)*
-            {{ form.height(class="form-control", min="0.1", step="0.1") }}
-          </div>
-          <div class="col-md-3">
-            {{ form.weight.label(class="form-label") }} (kg)*
-            {{ form.weight(class="form-control", min="0.1", step="0.1") }}
-          </div>
-        </div>
-        <div class="row mt-3 g-3">
-          <div class="col-md-6">
-            {{ form.quantity_per_carton.label(class="form-label") }}*
-            {{ form.quantity_per_carton(class="form-control", min="1") }}
-          </div>
-        </div>
+      <div class="card-header">
+        Pricing Tiers
+        <button type="button" class="btn btn-sm btn-primary float-right" id="add-tier">
+          Add Tier
+        </button>
       </div>
-    </div>
-
-    <!-- Production Information Card -->
-    <div class="card mb-4">
-      <div class="card-header">Production Details</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-4">
-            {{ form.moq.label(class="form-label") }}*
-            {{ form.moq(class="form-control", min="1") }}
-          </div>
-          <div class="col-md-4">
-            {{ form.production_time.label(class="form-label") }}
-            {{ form.production_time(class="form-control") }}
-          </div>
-          <div class="col-md-4">
-            {{ form.stock_date.label(class="form-label") }}
-            {{ form.stock_date(class="form-control", type="date") }}
-          </div>
-        </div>
-        
-        <!-- Imprint Details -->
-        <div class="row mt-3 g-3">
-          <div class="col-md-4">
-            {{ form.imprint_location.label(class="form-label") }}
-            {{ form.imprint_location(class="form-control") }}
-          </div>
-          <div class="col-md-4">
-            {{ form.imprint_dimensions.label(class="form-label") }}
-            {{ form.imprint_dimensions(class="form-control") }}
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Imprint Types</label>
-            <div class="form-check">
-              {% for choice in form.imprint_types %}
-                {{ choice(class="form-check-input") }}
-                {{ choice.label(class="form-check-label") }}
-              {% endfor %}
+      <div class="card-body" id="tiers-container">
+        <div class="tier-row mb-2">
+          <div class="row">
+            <div class="col">
+              <input type="number" class="form-control" name="tier-min" placeholder="Min quantity" required>
+            </div>
+            <div class="col">
+              <input type="number" class="form-control" name="tier-price" placeholder="Price per unit" step="0.01" required>
+            </div>
+            <div class="col-auto">
+              <button type="button" class="btn btn-danger remove-tier">&times;</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Status Tracking Card -->
-    <div class="card mb-4">
-      <div class="card-header">Status Tracking</div>
-      <div class="card-body">
-        <div class="row g-3">
-          {% for field in [form.added_to_spreadsheet, form.price_list_created, 
-             form.new_products_sheet_created, form.added_to_qb, form.added_to_web] %}
-            <div class="col-md-4">
-              <div class="form-check">
-                {{ field(class="form-check-input", disabled=not current_user.is_admin) }}
-                {{ field.label(class="form-check-label") }}
-              </div>
-            </div>
-          {% endfor %}
-          <div class="col-md-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" disabled 
-                {% if product and product.completion_status %}checked{% endif %}>
-              <label class="form-check-label">Complete Status</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <button type="submit" class="btn btn-primary">Save Product</button>
-      <a href="{{ url_for('product_bp.list_products') }}" class="btn btn-secondary">Cancel</a>
-    </div>
+    <button type="submit" class="btn btn-primary">Save Product</button>
   </form>
 </div>
 
-<!-- CKEditor for rich text -->
-<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
-  CKEDITOR.replace('description', {
-    toolbar: ['Bold', 'Italic', 'BulletedList', 'NumberedList', 'Link'],
-    removePlugins: 'image,table,tabletools',
-    height: 200
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('tiers-container');
+  
+  document.getElementById('add-tier').addEventListener('click', function() {
+    const newRow = container.children[0].cloneNode(true);
+    newRow.querySelectorAll('input').forEach(input => input.value = '');
+    container.appendChild(newRow);
   });
 
-  // Update completion status when checkboxes change
-  document.querySelectorAll('.form-check-input').forEach(checkbox => {
-    checkbox.addEventListener('change', updateCompletionStatus);
+  container.addEventListener('click', function(e) {
+    if(e.target.classList.contains('remove-tier')) {
+      if(container.children.length > 1) {
+        e.target.closest('.tier-row').remove();
+      }
+    }
   });
-
-  function updateCompletionStatus() {
-    const checkboxes = document.querySelectorAll('.form-check-input:not([disabled])');
-    const allChecked = [...checkboxes].every(cb => cb.checked);
-    document.querySelector('[name="completion_status"]').checked = allChecked;
-  }
+});
 </script>
 {% endblock %}
