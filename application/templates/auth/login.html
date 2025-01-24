@@ -19,9 +19,9 @@
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
                             {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                            {% for error in form.password.errors %}
-                                <div class="invalid-feedback d-block">{{ error }}</div>
-                            {% endfor %}
+                        <div class="mb-3 form-check">
+                            {{ form.remember(class="form-check-input") }}
+                            {{ form.remember.label(class="form-check-label") }}
                         </div>
                         <div class="d-grid gap-2">
                             {{ form.submit(class="btn btn-primary") }}

@@ -13,7 +13,7 @@ csrf = CSRFProtect()
 
 # Import models after extensions but before migrate initialization
 from application.models.user import User
-from application.models.product import Product
+from application.models.product import Product, ProductTier
 from application.models.quote import Quote
 from application.models.configuration import Configuration
 from application.models.audit_log import AuditLog

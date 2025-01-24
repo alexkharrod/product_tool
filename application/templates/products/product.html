@@ -5,32 +5,131 @@
   <form method="POST" enctype="multipart/form-data">
     {{ create_form.hidden_tag() }}
     
-    <div class="form-group">
-      {{ create_form.name.label }} {{ create_form.name(class="form-control") }}
+    <!-- Primary Information -->
+    <div class="card mb-4">
+      <div class="card-header">Product Identification</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            {{ create_form.sku.label(class="form-label") }}
+            {{ create_form.sku(class="form-control", pattern="[A-Z0-9-]{5,}") }}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.vendor_name.label(class="form-label") }}
+            {{ create_form.vendor_name(class="form-control") }}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.vendor_part_number.label(class="form-label") }}
+            {{ create_form.vendor_part_number(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ create_form.category.label(class="form-label") }}
+            {{ create_form.category(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ create_form.image_url.label(class="form-label") }}
+            {{ create_form.image_url(class="form-control") }}
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <div class="form-group">
-      {{ create_form.description.label }} {{ create_form.description(class="form-control") }}
+
+    <!-- Dimensional Information -->
+    <div class="card mb-4">
+      <div class="card-header">Master Carton</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            {{ create_form.length.label(class="form-label") }}
+            {{ create_form.length(class="form-control", step="0.01") }}
+          </div>
+          <div class="col-md-3">
+            {{ create_form.width.label(class="form-label") }}
+            {{ create_form.width(class="form-control", step="0.01") }}
+          </div>
+          <div class="col-md-3">
+            {{ create_form.height.label(class="form-label") }}
+            {{ create_form.height(class="form-control", step="0.01") }}
+          </div>
+          <div class="col-md-3">
+            {{ create_form.weight.label(class="form-label") }}
+            {{ create_form.weight(class="form-control", step="0.01") }}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.quantity_per_ctn.label(class="form-label") }}
+            {{ create_form.quantity_per_ctn(class="form-control") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Production Information -->
+    <div class="card mb-4">
+      <div class="card-header">Manufacturing Details</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            {{ create_form.moq.label(class="form-label") }}
+            {{ create_form.moq(class="form-control") }}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.package_type.label(class="form-label") }}
+            {{ create_form.package_type(class="form-control") }}
+          </div>
+          <div class="col-md-4">
+            {{ create_form.production_time.label(class="form-label") }}
+            {{ create_form.production_time(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ create_form.imprint_location.label(class="form-label") }}
+            {{ create_form.imprint_location(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ create_form.imprint_dimensions.label(class="form-label") }}
+            {{ create_form.imprint_dimensions(class="form-control") }}
+          </div>
+          <div class="col-12">
+            {{ create_form.imprint_types.label(class="form-label") }}
+            {{ create_form.imprint_types(class="form-control", placeholder="Comma-separated values") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Details -->
+    <div class="card mb-4">
+      <div class="card-header">Descriptive Information</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">
+            {{ create_form.description.label(class="form-label") }}
+            {{ create_form.description(class="form-control", rows=4) }}
+          </div>
+          <div class="col-12">
+            {{ create_form.keywords.label(class="form-label") }}
+            {{ create_form.keywords(class="form-control", placeholder="Comma-separated keywords") }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Pricing Tiers Section -->
     <div class="card mb-4">
       <div class="card-header">
         Pricing Tiers
-        <button type="button" class="btn btn-sm btn-primary float-right" id="add-tier">
-          Add Tier
-        </button>
+        
       </div>
       <div class="card-body" id="tiers-container">
-        <div class="tier-row mb-2">
+        <div class="tier-row mb-2" data-tier-index="0">
           <div class="row">
             <div class="col">
-              <input type="number" class="form-control" name="tier-min" placeholder="Min quantity" required>
+              <input type="number" class="form-control" name="tier-min" placeholder="Quantity" required>
             </div>
             <div class="col">
-              <input type="number" class="form-control" name="tier-price" placeholder="Price per unit" step="0.01" required>
+              <input type="number" class="form-control" name="tier-price" placeholder="Cost per unit" step="0.01" required>
             </div>
             <div class="col-auto">
+              <button type="button" class="btn btn-primary add-tier">Add</button>
               <button type="button" class="btn btn-danger remove-tier">&times;</button>
             </div>
           </div>
@@ -45,20 +144,46 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const container = document.getElementById('tiers-container');
-  
-  document.getElementById('add-tier').addEventListener('click', function() {
-    const newRow = container.children[0].cloneNode(true);
-    newRow.querySelectorAll('input').forEach(input => input.value = '');
-    container.appendChild(newRow);
+  const MAX_TIERS = 7;
+
+  function updateButtonVisibility() {
+    const tiers = container.querySelectorAll('.tier-row');
+    tiers.forEach((tier, index) => {
+      const addButton = tier.querySelector('.add-tier');
+      const removeButton = tier.querySelector('.remove-tier');
+      // Update tier index first
+      tier.dataset.tierIndex = index;
+      
+      // Show remove button on all tiers except the first (index 0)
+      removeButton.style.display = index > 0 ? 'inline-block' : 'none';
+      
+      // Show add button only on last tier when under max
+      addButton.style.display = (index === container.children.length - 1 && container.children.length < MAX_TIERS) ? 'inline-block' : 'none';
+    });
+  }
+
+  // Delegate add button clicks
+  container.addEventListener('click', function(e) {
+    if(e.target.classList.contains('add-tier')) {
+      const newRow = e.target.closest('.tier-row').cloneNode(true);
+      newRow.querySelectorAll('input').forEach(input => input.value = '');
+      container.appendChild(newRow);
+      updateButtonVisibility();
+    }
   });
 
+  // Delegate remove button clicks
   container.addEventListener('click', function(e) {
     if(e.target.classList.contains('remove-tier')) {
       if(container.children.length > 1) {
         e.target.closest('.tier-row').remove();
+        updateButtonVisibility();
       }
     }
   });
+
+  // Initial setup
+  updateButtonVisibility();
 });
 </script>
 {% endblock %}
